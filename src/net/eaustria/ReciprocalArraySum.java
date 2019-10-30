@@ -20,6 +20,15 @@ import java.util.concurrent.RecursiveAction;
  * Class wrapping methods for implementing reciprocal array sum in parallel.
  */
 public final class ReciprocalArraySum {
+    
+    public static void main(String[] args){
+        double[] arr = new double[50000];
+        for(int i = 0 ; i < arr.length; i++){
+            arr[i] = i+1;
+        }
+        System.out.println(seqArraySum(arr));
+        System.out.println(parManyTaskArraySum(arr, 16));
+    }
 
     /**
      * Default constructor.
@@ -102,8 +111,8 @@ public final class ReciprocalArraySum {
                 value += seqArraySum(input);
             }
             else{
-                taskPool.add(new ReciprocalArraySumTask(startIndexInclusive, endIndexExclusive, input));
-                taskPool.add(new ReciprocalArraySumTask(startIndexInclusive, endIndexExclusive, input));
+                taskPool.add(new ReciprocalArraySumTask(startIndexInclusive, endIndexExclusive/2, input));
+                taskPool.add(new ReciprocalArraySumTask(endIndexExclusive/2, endIndexExclusive, input));
                 invokeAll(taskPool);
             }
             
@@ -132,13 +141,11 @@ public final class ReciprocalArraySum {
      * @param numTasks The number of tasks to create
      * @return The sum of the reciprocals of the array input
      */
-    protected static double parManyTaskArraySum(final double[] input, final int numTasks) {
-        double sum = 0;
-        
+    protected static double parManyTaskArraySum(final double[] input, final int numTasks) {        
         ForkJoinPool threadPool = new ForkJoinPool(numTasks);
-        threadPool.invoke(new ReciprocalArraySumTask(1, 100000, input));
-        
-        return sum;
+        ReciprocalArraySumTask t = new ReciprocalArraySumTask(1, 100000, input);
+        threadPool.invoke(t);
+        return t.getValue();
     }
 }
 
